@@ -49,32 +49,41 @@ int main(void)
 
 
   /* Configure external interrupt - EXTI*/
+  NVIC_SetPriority(EXTI4_IRQn,2);
+  NVIC_EnableIRQ(EXTI4_IRQn);
 
-  	  //type your code for EXTI configuration (priority, enable EXTI, setup EXTI for input pin, trigger edge) here:
-
+  SYSCFG-> EXTICR[1] |= SYSCFG_EXTICR2_EXTI4_PB;
+  EXTI->IMR |= EXTI_IMR_MR4;
+  EXTI->RTSR &= ~(EXTI_RTSR_RT4);
+  EXTI->FTSR |= EXTI_FTSR_FT4;
 
   /* Configure GPIOB-4 pin as an input pin - button */
-
-	  //type your code for GPIO configuration here:
-
+  RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
+  GPIOB->MODER &= ~(GPIO_MODER_MODER3_Msk);
+  GPIOB->PUPDR &= ~(GPIO_PUPDR_PUPDR3_Msk);
+  GPIOB->PUPDR |= GPIO_PUPDR_PUPDR3_0 ;
 
   /* Configure GPIOA-4 pin as an output pin - LED */
-
-	  //type your code for GPIO configuration here:
+  RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+  GPIOA->MODER &= ~(GPIO_MODER_MODER4_Msk);
+  GPIOA->MODER |= GPIO_MODER_MODER4_0;
+  GPIOA->OTYPER &= ~(GPIO_OTYPER_OT_4);
+  GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR4);
+  GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR4);
 
 
   while (1)
   {
 	  if(switch_state)
 	  {
-		  GPIOB->BSRR |= GPIO_BSRR_BS_3;
+		  GPIOA->BSRR |= GPIO_BSRR_BS_4;
 		  for(uint16_t i=0; i<0xFF00; i++){}
-		  GPIOB->BRR |= GPIO_BRR_BR_3;
+		  GPIOA->BRR |= GPIO_BRR_BR_4;
 		  for(uint16_t i=0; i<0xFF00; i++){}
 	  }
 	  else
 	  {
-		  GPIOB->BRR |= GPIO_BRR_BR_3;
+		  GPIOA->BRR |= GPIO_BRR_BR_4;
 	  }
   }
 
@@ -118,7 +127,37 @@ void SystemClock_Config(void)
 
 uint8_t checkButtonState(GPIO_TypeDef* PORT, uint8_t PIN, uint8_t edge, uint8_t samples_window, uint8_t samples_required)
 {
-	  //type your code for "checkButtonState" implementation here:
+	static uint8_t number_of_new_states = 0;
+
+	if(edge == TRIGGER_FALL){
+	  for(int i = 0;i<samples_window;i++){
+		  if(!((PORT->IDR)&(0x1U <<PIN)))
+			  number_of_new_states++;
+		  else
+			  return 0;
+	  }
+
+	  if(number_of_new_states >= samples_required)
+		  return 1;
+	  else
+		  return 0;
+	}
+
+	if(edge == TRIGGER_RISE){
+		  for(int i = 0;i<samples_window;i++){
+			  if(((PORT->IDR) & (0x1U <<PIN)))
+				  number_of_new_states++;
+			  else
+				  return 0;
+		  }
+
+		  if(number_of_new_states >= samples_required)
+			  return 1;
+		  else
+			  return 0;
+		}
+
+	return 0;
 }
 
 
@@ -133,9 +172,7 @@ void EXTI4_IRQHandler(void)
 		switch_state ^= 1;
 	}
 
-	/* Clear EXTI4 pending register flag */
-
-		//type your code for pending register flag clear here:
+	EXTI->PR |= EXTI_PR_PR4;
 }
 
 /* USER CODE BEGIN 4 */
