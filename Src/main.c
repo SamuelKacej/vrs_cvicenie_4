@@ -49,41 +49,27 @@ int main(void)
 
 
   /* Configure external interrupt - EXTI*/
+  NVIC_SetPriority(EXTI4_IRQn,2);
+  NVIC_EnableIRQ(EXTI4_IRQn);
 
-  	  //type your code for EXTI configuration (priority, enable EXTI, setup EXTI for input pin, trigger edge) here:
-  NVIC->IP[10] |= 2<<4;
-  NVIC->ISER[0] |= 1<<10;
-
-
-  // set EXTI source PB4
-  SYSCFG->EXTICR[1] |= SYSCFG_EXTICR2_EXTI4_PB;
-  // Enable interrupt from EXTI line 4
+  SYSCFG-> EXTICR[1] |= SYSCFG_EXTICR2_EXTI4_PB;
   EXTI->IMR |= EXTI_IMR_MR4;
-  // Set EXTI trigger to falling edge
   EXTI->RTSR &= ~(EXTI_RTSR_RT4);
-  EXTI->FTSR |= EXTI_RTSR_RT4;
-
+  EXTI->FTSR |= EXTI_FTSR_FT4;
 
   /* Configure GPIOB-4 pin as an input pin - button */
-
-	  //type your code for GPIO configuration here:
   RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
-  GPIOB->MODER &= ~GPIO_MODER_MODER4;
-  GPIOB->OTYPER &= ~GPIO_OTYPER_OT_4;
-  GPIOB->OSPEEDR &= ~GPIO_OSPEEDER_OSPEEDR4;
-  GPIOB->PUPDR &= ~GPIO_PUPDR_PUPDR4;
-  GPIOB->PUPDR |= GPIO_PUPDR_PUPDR4_0;
-
+  GPIOB->MODER &= ~(GPIO_MODER_MODER3_Msk);
+  GPIOB->PUPDR &= ~(GPIO_PUPDR_PUPDR3_Msk);
+  GPIOB->PUPDR |= GPIO_PUPDR_PUPDR3_0 ;
 
   /* Configure GPIOA-4 pin as an output pin - LED */
-
-	  //type your code for GPIO configuration here:
   RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-  GPIOA->MODER &= ~GPIO_MODER_MODER4;
-  GPIOA->MODER |=  GPIO_MODER_MODER4_0;
-  GPIOA->OTYPER &= ~GPIO_OTYPER_OT_4;
-  GPIOA->OSPEEDR &= ~GPIO_OSPEEDER_OSPEEDR4;
-  GPIOA->PUPDR &= ~GPIO_PUPDR_PUPDR4;
+  GPIOA->MODER &= ~(GPIO_MODER_MODER4_Msk);
+  GPIOA->MODER |= GPIO_MODER_MODER4_0;
+  GPIOA->OTYPER &= ~(GPIO_OTYPER_OT_4);
+  GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR4);
+  GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR4);
 
   while (1)
   {
@@ -93,6 +79,7 @@ int main(void)
 		  //GPIOB->BSRR |= GPIO_BSRR_BS_4;
 		  for(uint16_t i=0; i<0xFF00; i++){}
 		  LED_OFF;
+
 		  for(uint16_t i=0; i<0xFF00; i++){}
 	  }
 	  else
@@ -150,10 +137,8 @@ uint8_t checkButtonState(GPIO_TypeDef* PORT, uint8_t PIN, uint8_t edge, uint8_t 
 	 \╭☞             \╭☞
 	*/
 
-	uint8_t cnt; // counts samples in row
+	uint8_t cnt = 0; // counts samples in row
 	for(; samples_window > 0 ; samples_window--){
-
-
 		if( edge ^ GET_GPIO_STATE(PORT, PIN))
 			cnt++;
 		else
@@ -176,11 +161,9 @@ void EXTI4_IRQHandler(void)
 	{
 		switch_state ^= 1;
 	}
-
 	/* Clear EXTI4 pending register flag */
-
 		//type your code for pending register flag clear here:
-	EXTI->PR |= (EXTI_PR_PIF4);
+	EXTI->PR |= EXTI_PR_PR4;
 }
 
 /* USER CODE BEGIN 4 */

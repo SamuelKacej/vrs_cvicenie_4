@@ -23,8 +23,10 @@
 #define		TRIGGER_FALL					1
 
 #define		BUTTON_EXTI_TRIGGER				TRIGGER_FALL
+
 #define		BUTTON_EXTI_SAMPLES_WINDOW		100
 #define		BUTTON_EXTI_SAMPLES_REQUIRED	90
+
 
 #define 	GET_GPIO_STATE(port, pin)		(((port)->IDR & (1<<(pin)))>>(pin))
 #define 	LED_ON					(GPIO_PORT_LED->ODR |= (uint32_t)(1 << GPIO_PIN_LED))
