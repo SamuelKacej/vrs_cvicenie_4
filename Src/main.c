@@ -71,19 +71,21 @@ int main(void)
   GPIOA->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR4);
   GPIOA->PUPDR &= ~(GPIO_PUPDR_PUPDR4);
 
-
   while (1)
   {
 	  if(switch_state)
 	  {
-		  GPIOA->BSRR |= GPIO_BSRR_BS_4;
+		  LED_ON;
+		  //GPIOB->BSRR |= GPIO_BSRR_BS_4;
 		  for(uint16_t i=0; i<0xFF00; i++){}
-		  GPIOA->BRR |= GPIO_BRR_BR_4;
+		  LED_OFF;
+
 		  for(uint16_t i=0; i<0xFF00; i++){}
 	  }
 	  else
 	  {
-		  GPIOA->BRR |= GPIO_BRR_BR_4;
+		  LED_OFF;
+		  //GPIOB->BRR |= GPIO_BRR_BR_3;
 	  }
   }
 
@@ -127,36 +129,24 @@ void SystemClock_Config(void)
 
 uint8_t checkButtonState(GPIO_TypeDef* PORT, uint8_t PIN, uint8_t edge, uint8_t samples_window, uint8_t samples_required)
 {
-	static uint8_t number_of_new_states = 0;
+	  //type your code for "checkButtonState" implementation here:
 
-	if(edge == TRIGGER_FALL){
-	  for(int i = 0;i<samples_window;i++){
-		  if(!((PORT->IDR)&(0x1U <<PIN)))
-			  number_of_new_states++;
-		  else
-			  return 0;
-	  }
+	/*
+	(\____/)
+	(͡ ͡°͜ ʖ ͡ ͡°) your code for "checkButtonState" implementation here:
+	 \╭☞             \╭☞
+	*/
 
-	  if(number_of_new_states >= samples_required)
-		  return 1;
-	  else
-		  return 0;
+	uint8_t cnt = 0; // counts samples in row
+	for(; samples_window > 0 ; samples_window--){
+		if( edge ^ GET_GPIO_STATE(PORT, PIN))
+			cnt++;
+		else
+			cnt = 0;
+
+		if(cnt >= samples_required)
+			return 1;
 	}
-
-	if(edge == TRIGGER_RISE){
-		  for(int i = 0;i<samples_window;i++){
-			  if(((PORT->IDR) & (0x1U <<PIN)))
-				  number_of_new_states++;
-			  else
-				  return 0;
-		  }
-
-		  if(number_of_new_states >= samples_required)
-			  return 1;
-		  else
-			  return 0;
-		}
-
 	return 0;
 }
 
@@ -171,7 +161,8 @@ void EXTI4_IRQHandler(void)
 	{
 		switch_state ^= 1;
 	}
-
+	/* Clear EXTI4 pending register flag */
+		//type your code for pending register flag clear here:
 	EXTI->PR |= EXTI_PR_PR4;
 }
 
